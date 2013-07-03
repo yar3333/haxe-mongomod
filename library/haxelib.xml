@@ -1,5 +1,5 @@
-<project name="mongodb" url="http://github.com/MattTuttle/mongo-haxe-driver" license="MIT">
-	<user name="heardtheword" />
+<project name="mongomod" url="http://code.google.com/p/mongomod/" license="MIT">
+	<user name="yar3333" />
 	<tag v="cpp" />
 	<tag v="neko" />
 	<tag v="php" />
