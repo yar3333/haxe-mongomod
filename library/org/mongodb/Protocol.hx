@@ -148,8 +148,7 @@ class Protocol
 		out.writeByte(0x00); // string terminator
 		writeInt32(out, 0); // TODO: flags
 
-		if (select)
-			writeDocument(out, select);
+		writeDocument(out, select != null ? select : {});
 
 		request(OP_DELETE, out.getBytes());
 	}
