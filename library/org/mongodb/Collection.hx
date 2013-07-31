@@ -103,6 +103,6 @@ class Collection
 
 	public var fullname(default, null):String;
 	public var name(default, null):String;
-	private var db:Database;
+	public var db:Database;
 
 }
