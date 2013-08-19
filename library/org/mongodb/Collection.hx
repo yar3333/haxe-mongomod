@@ -2,49 +2,56 @@ package org.mongodb;
 
 class Collection
 {
-	public function new(name:String, db:Database)
+	var protocol : Protocol;
+	
+	public var fullname(default, null) : String;
+	public var name(default, null) : String;
+	public var db : Database;
+	
+	public function new(protocol:Protocol, name:String, db:Database)
 	{
+		this.protocol = protocol;
 		this.name = name;
 		this.fullname = db.name + "." + name;
 		this.db = db;
 	}
 
-	public inline function find(?query:Dynamic, ?returnFields:Dynamic, skip:Int = 0, number:Int = 0):Cursor
+	public inline function find(?query:Dynamic, ?returnFields:Dynamic, skip=0, number=0) : Cursor
 	{
-		Protocol.query(fullname, query, returnFields, skip, number);
-		return new Cursor(fullname);
+		protocol.query(fullname, query, returnFields, skip, number);
+		return new Cursor(protocol, fullname);
 	}
 
 	public inline function findOne(?query:Dynamic, ?returnFields:Dynamic):Dynamic
 	{
-		Protocol.query(fullname, query, returnFields, 0, -1);
-		return Protocol.getOne();
+		protocol.query(fullname, query, returnFields, 0, -1);
+		return protocol.getOne();
 	}
 
 	public inline function insert(fields:Dynamic)
 	{
-		Protocol.insert(fullname, fields);
+		protocol.insert(fullname, fields);
 	}
 
 	public inline function update(select:Dynamic, fields:Dynamic, ?upsert:Bool, ?multi:Bool)
 	{
 		var flags = 0x0 | (upsert ? 0x1 : 0) | (multi ? 0x2 : 0);
-		Protocol.update(fullname, select, fields, flags);
+		protocol.update(fullname, select, fields, flags);
 	}
 
 	public inline function remove(?select:Dynamic)
 	{
-		Protocol.remove(fullname, select);
+		protocol.remove(fullname, select);
 	}
 
 	public inline function create() { db.createCollection(name); }
 	public inline function drop() { db.dropCollection(name); }
 	public inline function rename(to:String) { db.renameCollection(name, to); }
 
-	public function getIndexes():Cursor
+	public function getIndexes() : Cursor
 	{
-		Protocol.query(db.name + ".system.indexes", {ns: fullname});
-		return new Cursor(fullname);
+		protocol.query(db.name + ".system.indexes", {ns: fullname});
+		return new Cursor(protocol, fullname);
 	}
 
 	public function ensureIndex(keyPattern:Dynamic, ?options:Dynamic)
@@ -68,7 +75,7 @@ class Collection
 			Reflect.setField(options, "key", keyPattern);
 		}
 
-		Protocol.insert(db.name + ".system.indexes", options);
+		protocol.insert(db.name + ".system.indexes", options);
 	}
 
 	public function dropIndexes()
@@ -100,9 +107,4 @@ class Collection
 		var result = db.runCommand(cmd);
 		return result.values;
 	}
-
-	public var fullname(default, null):String;
-	public var name(default, null):String;
-	public var db:Database;
-
 }

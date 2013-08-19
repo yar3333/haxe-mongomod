@@ -2,20 +2,22 @@ package org.mongodb;
 
 class Mongo implements Dynamic<Database>
 {
-
-	public function new(?host:String = "localhost", ?port:Int = 27017)
+	var protocol : Protocol;
+	
+	public function new(host="localhost", port=27017)
 	{
-		Protocol.connect(host, port);
+		protocol = new Protocol(host, port);
 	}
 
-	public inline function getDB(name:String):Database
+	public inline function getDB(name:String) : Database
 	{
-		return new Database(name);
+		return new Database(protocol, name);
 	}
-
-	public function resolve(name:String):Database
+	
+	public inline function close()
 	{
-		return getDB(name);
+		protocol.close();
 	}
-
 }
+
+

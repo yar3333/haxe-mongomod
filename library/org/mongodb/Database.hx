@@ -9,23 +9,29 @@ import org.bsonspec.BSONDocument;
 
 class Database implements Dynamic<Collection>
 {
-	public function new(name:String)
+	var protocol : Protocol;
+	var cmd : Collection;
+	
+	public var name(default, null) : String;
+	
+	public function new(protocol:Protocol, name:String)
 	{
+		this.protocol = protocol;
 		this.name = name;
-		this.cmd = new Collection("$cmd", this);
+		this.cmd = new Collection(protocol, "$cmd", this);
 	}
 
-	public inline function getCollection(name:String):Collection
+	public inline function getCollection(name:String) : Collection
 	{
-		return new Collection(name, this);
+		return new Collection(protocol, name, this);
 	}
 
-	public function resolve(name:String):Collection
+	public function resolve(name:String) : Collection
 	{
 		return getCollection(name);
 	}
 
-	public function listCollections():Array<String>
+	public function listCollections() : Array<String>
 	{
 		var collections = getCollection("system.namespaces").find({
 			options: { '$exists': 1 } // find namespaces where options exists
@@ -64,7 +70,7 @@ class Database implements Dynamic<Collection>
 	 * @param username the user to login
 	 * @param password the password to authenticate with
 	 */
-	public function login(username:String, password:String):Bool
+	public function login(username:String, password:String) : Bool
 	{
 		var n = runCommand({getnonce: 1});
 		if (n == null) return false; // command failed
@@ -88,7 +94,7 @@ class Database implements Dynamic<Collection>
 		runCommand({logout: 1});
 	}
 
-	public inline function createCollection(collection:String):Collection
+	public inline function createCollection(collection:String) : Collection
 	{
 		runCommand({create: collection});
 		return getCollection(collection);
@@ -109,16 +115,13 @@ class Database implements Dynamic<Collection>
 		runCommand({dropDatabase: 1});
 	}
 
-	public inline function runCommand(command:Dynamic):Dynamic
+	public inline function runCommand(command:Dynamic) : Dynamic
 	{
 		return cmd.findOne(command);
 	}
 
-	public inline function runScript(script:String):Dynamic
+	public inline function runScript(script:String) : Dynamic
 	{
 		return cmd.findOne({eval: script});
 	}
-
-	public var name(default, null):String;
-	private var cmd:Collection;
 }

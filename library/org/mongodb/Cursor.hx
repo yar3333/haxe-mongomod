@@ -4,9 +4,15 @@ import haxe.Int64;
 
 class Cursor
 {
-
-	public function new(collection:String)
+	var protocol : Protocol;
+	var collection : String;
+	var cursorId : Int64;
+	var documents : Array<Dynamic>;
+	var finished : Bool;
+	
+	public function new(protocol:Protocol, collection:String)
 	{
+		this.protocol = protocol;
 		this.collection = collection;
 		this.finished = false;
 		this.documents = new Array<Dynamic>();
@@ -16,13 +22,13 @@ class Cursor
 
 	private inline function checkResponse():Bool
 	{
-		cursorId = Protocol.response(documents);
+		cursorId = protocol.response(documents);
 		if (documents.length == 0)
 		{
 			finished = true;
 			if (cursorId != null)
 			{
-				Protocol.killCursors([cursorId]);
+				protocol.killCursors([cursorId]);
 			}
 			return false;
 		}
@@ -43,7 +49,7 @@ class Cursor
 		}
 		else
 		{
-			Protocol.getMore(collection, cursorId);
+			protocol.getMore(collection, cursorId);
 			if (checkResponse())
 			{
 				return true;
@@ -56,10 +62,4 @@ class Cursor
 	{
 		return documents.shift();
 	}
-
-	private var collection:String;
-	private var cursorId:Int64;
-	private var documents:Array<Dynamic>;
-	private var finished:Bool;
-
 }
