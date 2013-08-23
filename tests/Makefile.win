@@ -1,0 +1,5 @@
+NEKOPATH:=%NEKOPATH%;..\..\library\ndll\Windows
+
+neko:
+	haxe -cp ../library -cp src -main Main -neko bin/index.n
+	run.cmd neko index.n
