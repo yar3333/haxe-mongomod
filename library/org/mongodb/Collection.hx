@@ -1,4 +1,5 @@
 package org.mongodb;
+import org.bsonspec.BSONDocument;
 
 class Collection
 {
@@ -101,9 +102,11 @@ class Collection
 
 	public inline function distinct(key:String, ?query:Dynamic):Array<Dynamic>
 	{
-		var cmd:{ distinct:String, key:String, ?query:Dynamic } = { distinct: name, key: key };
-		if (query != null)
-			cmd.query = query;
+		var cmd = BSONDocument.create();
+		cmd.append("distinct", name);
+		cmd.append("key", key);
+		if (query != null) cmd.append("query", query);
+		
 		var result = db.runCommand(cmd);
 		return result.values;
 	}
