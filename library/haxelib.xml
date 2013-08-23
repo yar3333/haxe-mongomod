@@ -1,8 +1,0 @@
-<project name="mongomod" url="http://code.google.com/p/mongomod/" license="MIT">
-	<user name="yar3333" />
-	<tag v="cpp" />
-	<tag v="neko" />
-	<tag v="php" />
-	<description>MongoDB driver for Haxe</description>
-	<version name="0.8.1">See changelog.txt</version>
-</project>
