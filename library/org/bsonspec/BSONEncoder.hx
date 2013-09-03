@@ -50,12 +50,12 @@ class BSONEncoder
 			writeHeader(out, key, 0x02);
 			writeString(out, value);
 		}
-		else if (Std.is(value, Int))
+		else if (Type.typeof(value) == Type.ValueType.TInt)
 		{
 			writeHeader(out, key, 0x10);
-			out.writeInt32(#if haxe3 value #else haxe.Int32.ofInt(value) #end);
+			out.writeInt32(value);
 		}
-		else if (Std.is(value, Float))
+		else if (Type.typeof(value) == Type.ValueType.TFloat)
 		{
 			writeHeader(out, key, 0x01);
 			out.writeDouble(value);
