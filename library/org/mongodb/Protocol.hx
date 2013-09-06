@@ -48,12 +48,8 @@ class Protocol
 		socket.connect(host, port);
 		socket.endian = flash.utils.Endian.LITTLE_ENDIAN;
 
-		socket.addEventListener(IOErrorEvent.IO_ERROR, function(e:Event) {
-				trace(e);
-			}, false, 0, true);
-		socket.addEventListener(SecurityErrorEvent.SECURITY_ERROR, function(e:Event) {
-				trace(e);
-			}, false, 0, true);
+		socket.addEventListener(IOErrorEvent.IO_ERROR, function(e:Event) trace(e), false, 0, true);
+		socket.addEventListener(SecurityErrorEvent.SECURITY_ERROR, function(e:Event) trace(e), false, 0, true);
 #else
 		socket.connect(new Host(host), port);
 #end
@@ -64,20 +60,10 @@ class Protocol
 		socket.close();
 	}
 
-	public inline function message(msg:String)
-	{
-		throw "deprecated";
-		var out:BytesOutput = new BytesOutput();
-		out.writeString(msg);
-		out.writeByte(0x00);
-
-		request(OP_MSG, out.getBytes());
-	}
-
-	public inline function query(collection:String, ?query:Dynamic, ?returnFields:Dynamic, skip:Int = 0, number:Int = 0)
+	public inline function query(collection:String, ?query:Dynamic, ?returnFields:Dynamic, skip=0, number=0, flags=0)
 	{
 		var out:BytesOutput = new BytesOutput();
-		writeInt32(out, 0); // TODO: flags
+		writeInt32(out, flags);
 		out.writeString(collection);
 		out.writeByte(0x00); // string terminator
 		writeInt32(out, skip);
@@ -86,7 +72,8 @@ class Protocol
 		if (query == null) query = {};
 		writeDocument(out, query);
 
-		if (returnFields != null) {
+		if (returnFields != null)
+		{
 			writeDocument(out, returnFields);
 		}
 

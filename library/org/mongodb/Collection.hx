@@ -1,4 +1,5 @@
 package org.mongodb;
+
 import org.bsonspec.BSONDocument;
 
 class Collection
@@ -17,9 +18,15 @@ class Collection
 		this.db = db;
 	}
 
-	public inline function find(?query:Dynamic, ?returnFields:Dynamic, skip=0, number=0) : Cursor
+	/**
+	 * @param	query			Query object.
+	 * @param	returnFields	Projection object.
+	 * @param	skip			Number of the records to skip.
+	 * @param	number			Number of the record to return by mongo at first (inner optimization). Use negative values to limit total count of the returned records. Also, mongo treat 1 as -1.
+	 */
+	public inline function find(?query:Dynamic, ?returnFields:Dynamic, skip=0, number=0, flags=0) : Cursor
 	{
-		protocol.query(fullname, query, returnFields, skip, number);
+		protocol.query(fullname, query, returnFields, skip, number, flags);
 		return new Cursor(protocol, fullname);
 	}
 
@@ -45,9 +52,9 @@ class Collection
 		protocol.remove(fullname, select);
 	}
 
-	public inline function create() { db.createCollection(name); }
-	public inline function drop() { db.dropCollection(name); }
-	public inline function rename(to:String) { db.renameCollection(name, to); }
+	public inline function create() db.createCollection(name);
+	public inline function drop() db.dropCollection(name);
+	public inline function rename(to:String) db.renameCollection(name, to);
 
 	public function getIndexes() : Cursor
 	{
