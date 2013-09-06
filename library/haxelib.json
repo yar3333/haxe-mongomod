@@ -2,10 +2,10 @@
   "name": "mongomod",
   "license": "MIT",
   "tags": ["cpp","neko","php"],
-  "description": "MongoDB driver for Haxe",
+  "description": "MongoDB driver for haxe. Based on the 'mongodb' haxe library.",
   "contributors": ["yar3333"],
   "releasenote": "See changelog.txt",
-  "version": "0.8.2",
+  "version": "0.9.0",
   "url": "http://code.google.com/p/mongomod/",
   "dependencies": {}
 }
