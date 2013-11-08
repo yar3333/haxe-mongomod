@@ -96,6 +96,7 @@ class BSONDecoder
 				bytes += 8;
 			case 0x12: // int64
 				value = readInt64(input);
+				value = Int64.getHigh(value) * 4294967296.0 + (Int64.getLow(value) > 0 ? Int64.getLow(value) : 4294967296.0 + Int64.getLow(value));
 				bytes += 8;
 			case 0xFF: // min key
 				value = "MIN";
@@ -148,8 +149,8 @@ class BSONDecoder
 
 	private inline function readInt64(input:Input):Int64
 	{
-		var high = input.readInt32();
 		var low = input.readInt32();
+		var high = input.readInt32();
 		return Int64.make(high, low);
 	}
 
