@@ -41,9 +41,14 @@ class BSONDecoder
 			case 0x01: // double
 				value = input.readDouble();
 				bytes += 8;
-			case 0x02: // string
-				bytes += readInt32(input) + 4;
-				value = input.readUntil(0x00);
+			case 0x02, 0x0D: // string, javascript
+				var len = readInt32(input);
+				bytes += len + 4;
+				value = input.readString(len);
+				if (value.length > 0 && value.charCodeAt(value.length - 1) == 0)
+				{
+					value = value.substr(0, value.length - 1);
+				}
 			case 0x03: // object
 				var len = readInt32(input);
 				value = readObject(input, len - 4);
@@ -79,12 +84,8 @@ class BSONDecoder
 				// TODO: handle regex somehow
 			case 0x0C: // DBPointer
 				throw "Deprecated: 0x0C DBPointer";
-			case 0x0D: // javascript
-				bytes += readInt32(input) + 4;
-				value = input.readUntil(0x00);
 			case 0x0E: // symbol
-				bytes += readInt32(input) + 4;
-				value = input.readUntil(0x00);
+				throw "Deprecated: 0x0E Symbol";
 			case 0x0F: // code w/ scope
 				throw "Unimplemented: code w/ scope";
 			case 0x10: // integer
