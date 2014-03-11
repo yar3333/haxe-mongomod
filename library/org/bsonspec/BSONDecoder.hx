@@ -6,7 +6,6 @@ import haxe.io.Input;
 
 class BSONDecoder
 {
-
 	public function new(input:Input)
 	{
 		var length = readInt32(input);
@@ -35,7 +34,7 @@ class BSONDecoder
 		var value:Dynamic = null;
 		var key:String = input.readUntil(0x00); // read cstring
 		var bytes = key.length + 1; // add null byte
-
+		
 		switch (type)
 		{
 			case 0x01: // double
@@ -61,7 +60,7 @@ class BSONDecoder
 				var len = readInt32(input);
 				var subtype = input.readByte();
 				// TODO: properly handle binary data
-				input.readBytes(value, 0, len);
+				value = input.read(len);
 				bytes += len + 5;
 			case 0x06: // DBPointer
 				throw "Deprecated: 0x06 undefined";
@@ -106,7 +105,7 @@ class BSONDecoder
 			default:
 				throw "Unknown type " + type;
 		}
-
+		
 		return {
 			key: key,
 			value: value,
@@ -119,7 +118,7 @@ class BSONDecoder
 		var object:Dynamic = {};
 		while (length > 0)
 		{
-			var type:Int = input.readByte();
+			var type = input.readByte();
 			length -= 1;
 			if (type == 0x00) return object; // end of object
 			var field = readField(type, input);

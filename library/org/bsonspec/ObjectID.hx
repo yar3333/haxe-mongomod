@@ -37,8 +37,7 @@ class ObjectID
 		}
 		else
 		{
-			bytes = Bytes.alloc(12);
-			input.readBytes(bytes, 0, 12);
+			bytes = input.read(12);
 		}
 	}
 
