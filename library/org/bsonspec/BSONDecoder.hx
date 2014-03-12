@@ -71,7 +71,7 @@ class BSONDecoder
 				value = (input.readByte() == 1) ? true : false;
 				bytes += 1;
 			case 0x09: // utc datetime (int64)
-				value = Date.fromTime(input.readDouble());
+				value = Date.fromTime(input.readInt32() + input.readInt32() * 4294967296.0);
 				bytes += 8;
 			case 0x0A: // null
 				value = null;

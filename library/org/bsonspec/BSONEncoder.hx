@@ -69,7 +69,9 @@ class BSONEncoder
 		else if (Std.is(value, Date))
 		{
 			writeHeader(out, key, 0x09);
-			out.writeDouble(value.getTime());
+			var time = value.getTime();
+			out.writeInt32(Std.int(time));
+			out.writeInt32(Std.int(time / 4294967296));
 		}
 		else if (Std.is(value, Array))
 		{
