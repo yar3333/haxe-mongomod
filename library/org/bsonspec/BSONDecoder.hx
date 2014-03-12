@@ -71,7 +71,7 @@ class BSONDecoder
 				value = (input.readByte() == 1) ? true : false;
 				bytes += 1;
 			case 0x09: // utc datetime (int64)
-				value = Date.fromTime(input.readInt32() + input.readInt32() * 4294967296.0);
+				value = Date.fromTime(readUInt64(input));
 				bytes += 8;
 			case 0x0A: // null
 				value = null;
@@ -156,4 +156,13 @@ class BSONDecoder
 
 	private var object:Dynamic;
 
+	private function readUInt32(input:Input) : Float
+	{
+		return input.readUInt16() + input.readUInt16() * 65536.0;
+	}
+	
+	private function readUInt64(input:Input) : Float
+	{
+		return readUInt32(input) + readUInt32(input) * 4294967296.0;
+	}
 }
