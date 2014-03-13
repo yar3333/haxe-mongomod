@@ -69,9 +69,7 @@ class BSONEncoder
 		else if (Std.is(value, Date))
 		{
 			writeHeader(out, key, 0x09);
-			var time = value.getTime();
-			out.writeInt32(Std.int(time));
-			out.writeInt32(Std.int(time / 4294967296));
+			writeUInt64(out, value.getTime());
 		}
 		else if (Std.is(value, Array))
 		{
@@ -182,5 +180,20 @@ class BSONEncoder
 	}
 
 	private var bytes:Bytes;
-
+	
+	function writeUInt32(out:BytesOutput, n:Float)
+	{
+		var a = Std.int(n / 65536);
+		var b = Math.round(n - a);
+		out.writeUInt16(b);
+		out.writeUInt16(a);
+	}
+	
+	function writeUInt64(out:BytesOutput, n:Float)
+	{
+		var a = Std.int(n / 4294967296.0);
+		var b = Math.round(n - a);
+		writeUInt32(out, b);
+		writeUInt32(out, a);
+	}
 }
