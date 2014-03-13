@@ -183,8 +183,8 @@ class BSONEncoder
 	
 	function writeUInt32(out:BytesOutput, n:Float)
 	{
-		var a = Std.int(n / 65536);
-		var b = Math.round(n - a);
+		var a = Std.int(n / 65536.0);
+		var b = Math.round(n - a * 65536.0);
 		out.writeUInt16(b);
 		out.writeUInt16(a);
 	}
@@ -192,7 +192,7 @@ class BSONEncoder
 	function writeUInt64(out:BytesOutput, n:Float)
 	{
 		var a = Std.int(n / 4294967296.0);
-		var b = Math.round(n - a);
+		var b = Math.round(n - a * 4294967296.0);
 		writeUInt32(out, b);
 		writeUInt32(out, a);
 	}
