@@ -7,6 +7,7 @@ import haxe.io.BytesOutput;
 import haxe.io.Output;
 import haxe.io.Input;
 import org.bsonspec.BSON;
+import org.bsonspec.BSONDocument;
 import org.bsonspec.ObjectID;
 
 #if flash
@@ -103,10 +104,19 @@ class Protocol
 		out.writeByte(0x00); // string terminator
 		
 		// check for _id field, generate if it doesn't exist
-		var writeField = function(field) {
+		function writeField(field)
+		{
 			if (!Reflect.hasField(field, '_id'))
 			{
-				field._id = new ObjectID();
+				if (!Std.is(field, BSONDocument))
+				{
+					field._id = new ObjectID();
+				}
+				else
+				if (!Lambda.exists( { iterator:cast(field, BSONDocument).nodes }, function(node) return node.key == "_id"))
+				{
+					cast(field, BSONDocument).append("_id", new ObjectID());
+				}
 			}
 			writeDocument(out, field);
 		};
