@@ -6,7 +6,6 @@ import haxe.io.Input;
 
 class BSONDecoder
 {
-
 	public function new(input:Input)
 	{
 		var length = readInt32(input);
@@ -35,15 +34,20 @@ class BSONDecoder
 		var value:Dynamic = null;
 		var key:String = input.readUntil(0x00); // read cstring
 		var bytes = key.length + 1; // add null byte
-
+		
 		switch (type)
 		{
 			case 0x01: // double
 				value = input.readDouble();
 				bytes += 8;
-			case 0x02: // string
-				bytes += readInt32(input) + 4;
-				value = input.readUntil(0x00);
+			case 0x02, 0x0D: // string, javascript
+				var len = readInt32(input);
+				bytes += len + 4;
+				value = input.readString(len);
+				if (value.length > 0 && value.charCodeAt(value.length - 1) == 0)
+				{
+					value = value.substr(0, value.length - 1);
+				}
 			case 0x03: // object
 				var len = readInt32(input);
 				value = readObject(input, len - 4);
@@ -56,7 +60,7 @@ class BSONDecoder
 				var len = readInt32(input);
 				var subtype = input.readByte();
 				// TODO: properly handle binary data
-				input.readBytes(value, 0, len);
+				value = input.read(len);
 				bytes += len + 5;
 			case 0x06: // DBPointer
 				throw "Deprecated: 0x06 undefined";
@@ -67,7 +71,7 @@ class BSONDecoder
 				value = (input.readByte() == 1) ? true : false;
 				bytes += 1;
 			case 0x09: // utc datetime (int64)
-				value = Date.fromTime(input.readDouble());
+				value = Date.fromTime(readUInt64(input));
 				bytes += 8;
 			case 0x0A: // null
 				value = null;
@@ -79,12 +83,8 @@ class BSONDecoder
 				// TODO: handle regex somehow
 			case 0x0C: // DBPointer
 				throw "Deprecated: 0x0C DBPointer";
-			case 0x0D: // javascript
-				bytes += readInt32(input) + 4;
-				value = input.readUntil(0x00);
 			case 0x0E: // symbol
-				bytes += readInt32(input) + 4;
-				value = input.readUntil(0x00);
+				throw "Deprecated: 0x0E Symbol";
 			case 0x0F: // code w/ scope
 				throw "Unimplemented: code w/ scope";
 			case 0x10: // integer
@@ -105,7 +105,7 @@ class BSONDecoder
 			default:
 				throw "Unknown type " + type;
 		}
-
+		
 		return {
 			key: key,
 			value: value,
@@ -118,7 +118,7 @@ class BSONDecoder
 		var object:Dynamic = {};
 		while (length > 0)
 		{
-			var type:Int = input.readByte();
+			var type = input.readByte();
 			length -= 1;
 			if (type == 0x00) return object; // end of object
 			var field = readField(type, input);
@@ -156,4 +156,13 @@ class BSONDecoder
 
 	private var object:Dynamic;
 
+	private function readUInt32(input:Input) : Float
+	{
+		return input.readUInt16() + input.readUInt16() * 65536.0;
+	}
+	
+	private function readUInt64(input:Input) : Float
+	{
+		return readUInt32(input) + readUInt32(input) * 4294967296.0;
+	}
 }

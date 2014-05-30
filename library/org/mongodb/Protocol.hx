@@ -7,6 +7,7 @@ import haxe.io.BytesOutput;
 import haxe.io.Output;
 import haxe.io.Input;
 import org.bsonspec.BSON;
+import org.bsonspec.BSONDocument;
 import org.bsonspec.ObjectID;
 
 #if flash
@@ -47,7 +48,7 @@ class Protocol
 #if flash
 		socket.connect(host, port);
 		socket.endian = flash.utils.Endian.LITTLE_ENDIAN;
-
+		
 		socket.addEventListener(IOErrorEvent.IO_ERROR, function(e:Event) trace(e), false, 0, true);
 		socket.addEventListener(SecurityErrorEvent.SECURITY_ERROR, function(e:Event) trace(e), false, 0, true);
 #else
@@ -59,7 +60,7 @@ class Protocol
 	{
 		socket.close();
 	}
-
+	
 	public inline function query(collection:String, ?query:Dynamic, ?returnFields:Dynamic, skip=0, number=0, flags=0)
 	{
 		var out:BytesOutput = new BytesOutput();
@@ -68,15 +69,15 @@ class Protocol
 		out.writeByte(0x00); // string terminator
 		writeInt32(out, skip);
 		writeInt32(out, number);
-
+		
 		if (query == null) query = {};
 		writeDocument(out, query);
-
+		
 		if (returnFields != null)
 		{
 			writeDocument(out, returnFields);
 		}
-
+		
 		request(OP_QUERY, out.getBytes());
 	}
 
@@ -87,11 +88,11 @@ class Protocol
 		out.writeString(collection);
 		out.writeByte(0x00); // string terminator
 		writeInt32(out, number);
-
+		
 		// write Int64
 		out.writeInt32(Int64.getHigh(cursorId));
 		out.writeInt32(Int64.getLow(cursorId));
-
+		
 		request(OP_GETMORE, out.getBytes());
 	}
 
@@ -101,16 +102,25 @@ class Protocol
 		writeInt32(out, 0); // TODO: flags
 		out.writeString(collection);
 		out.writeByte(0x00); // string terminator
-
+		
 		// check for _id field, generate if it doesn't exist
-		var writeField = function(field) {
+		function writeField(field)
+		{
 			if (!Reflect.hasField(field, '_id'))
 			{
-				field._id = new ObjectID();
+				if (!Std.is(field, BSONDocument))
+				{
+					field._id = new ObjectID();
+				}
+				else
+				if (!Lambda.exists( { iterator:cast(field, BSONDocument).nodes }, function(node) return node.key == "_id"))
+				{
+					cast(field, BSONDocument).append("_id", new ObjectID());
+				}
 			}
 			writeDocument(out, field);
 		};
-
+		
 		// write multiple documents, if an array
 		if (Std.is(fields, Array))
 		{
@@ -124,11 +134,11 @@ class Protocol
 		{
 			writeField(fields);
 		}
-
+		
 		// write request
 		request(OP_INSERT, out.getBytes());
 	}
-
+	
 	public inline function update(collection:String, select:Dynamic, fields:Dynamic, flags:Int)
 	{
 		var out:BytesOutput = new BytesOutput();
@@ -136,10 +146,10 @@ class Protocol
 		out.writeString(collection);
 		out.writeByte(0x00); // string terminator
 		writeInt32(out, flags);
-
+		
 		writeDocument(out, select);
 		writeDocument(out, fields);
-
+		
 		// write request
 		request(OP_UPDATE, out.getBytes());
 	}
@@ -151,9 +161,9 @@ class Protocol
 		out.writeString(collection);
 		out.writeByte(0x00); // string terminator
 		writeInt32(out, 0); // TODO: flags
-
+		
 		writeDocument(out, select != null ? select : {});
-
+		
 		request(OP_DELETE, out.getBytes());
 	}
 
@@ -167,14 +177,14 @@ class Protocol
 			out.writeInt32(Int64.getHigh(cursor));
 			out.writeInt32(Int64.getLow(cursor));
 		}
-
+		
 		request(OP_KILL_CURSORS, out.getBytes());
 	}
 
 	public inline function getOne():Dynamic
 	{
 		var details = read();
-
+		
 		if (details.numReturned == 1)
 			return BSON.decode(details.input);
 		else
@@ -184,7 +194,7 @@ class Protocol
 	public inline function response(documents:Array<Dynamic>):Int64
 	{
 		var details = read();
-
+		
 		for (i in 0...details.numReturned)
 		{
 			documents.push(BSON.decode(details.input));
@@ -195,7 +205,7 @@ class Protocol
 	private function read():Dynamic
 	{
 		var length:Int = 0, input:Input = null;
-
+		
 #if flash
 		var bytes = new flash.utils.ByteArray();
 		try {
@@ -206,11 +216,10 @@ class Protocol
 		socket.readBytes(bytes, 0, length);
 		input = new haxe.io.BytesInput(Bytes.ofData(bytes), 0, length);
 #else
-
 		length = readInt32(socket.input);
 		input = socket.input;
 #end
-
+		
 		var details = {
 //			length:       input.readInt32(), // length
 			length:       length,
@@ -223,7 +232,7 @@ class Protocol
 			startingFrom: input.readInt32(),
 			numReturned:  readInt32(input)
 		};
-
+		
 		var flags:EnumFlags<ReplyFlags> = EnumFlags.ofInt(details.flags);
 		if (flags.has(CursorNotFound) && details.numReturned != 0)
 		{
@@ -234,17 +243,17 @@ class Protocol
 			trace(BSON.decode(input));
 			throw "Query failed";
 		}
-
+		
 		return details;
 	}
-
+	
 	private inline function readInt64(input:Input):Int64
 	{
 		var high = input.readInt32();
 		var low = input.readInt32();
 		return Int64.make(high, low);
 	}
-
+	
 	private inline function request(opcode:Int, data:Bytes, ?responseTo:Int = 0):Int
 	{
 		if (socket == null)
@@ -268,13 +277,13 @@ class Protocol
 #end
 		return requestId++;
 	}
-
+	
 	private inline function writeDocument(out:BytesOutput, data:Dynamic)
 	{
 		var d = BSON.encode(data);
 		out.writeBytes(d, 0, d.length);
 	}
-
+	
 	// Int32 compatibility for Haxe 2.x
 #if haxe3
 	private inline function writeInt32(out:Output, value:Int)

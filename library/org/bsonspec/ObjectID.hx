@@ -6,7 +6,18 @@ import haxe.io.BytesOutput;
 
 class ObjectID
 {
-
+	static var pid = Std.random(65536);
+	
+	static var sequence = 0;
+	
+#if (neko || php || cpp)
+	static var machine:Bytes = Bytes.ofString(sys.net.Host.localhost());
+#else
+	static var machine:Bytes = Bytes.ofString("flash");
+#end
+	
+	public var bytes(default, null):Bytes;
+	
 	public function new(?input:Input)
 	{
 		if (input == null)
@@ -26,8 +37,7 @@ class ObjectID
 		}
 		else
 		{
-			bytes = Bytes.alloc(12);
-			input.readBytes(bytes, 0, 12);
+			bytes = input.read(12);
 		}
 	}
 
@@ -35,16 +45,15 @@ class ObjectID
 	{
 		return 'ObjectID("' + bytes.toHex() + '")';
 	}
-
-	public var bytes(default, null):Bytes;
-	private static var sequence:Int = 0;
-
-	// machine host name
-#if (neko || php || cpp)
-	private static var machine:Bytes = Bytes.ofString(sys.net.Host.localhost());
-#else
-	private static var machine:Bytes = Bytes.ofString("flash");
-#end
-	private static var pid = Std.random(65536);
-
+	
+	public static function fromString(s:String) : ObjectID
+	{
+		var r = new ObjectID();
+		var i = 0; while (i < s.length)
+		{
+			r.bytes.set(i >> 1, Std.parseInt("0x" + s.substr(i, 2)));
+			i += 2;
+		}
+		return r;
+	}
 }
