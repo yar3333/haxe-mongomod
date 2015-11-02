@@ -55,7 +55,7 @@ class Cursor
 		if (documents.length == 0)
 		{
 			finished = true;
-			if (cursorId != null)
+			if (cursorId != cast null)
 			{
 				protocol.killCursors([cursorId]);
 			}

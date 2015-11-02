@@ -60,11 +60,11 @@ class BSONEncoder
 			writeHeader(out, key, 0x01);
 			out.writeDouble(value);
 		}
-		else if (Std.is(value, Int64))
+		else if (Int64.is(value))
 		{
 			writeHeader(out, key, 0x12);
-			out.writeInt32(Int64.getHigh(value));
-			out.writeInt32(Int64.getLow(value));
+			out.writeInt32(value.high);
+			out.writeInt32(value.low);
 		}
 		else if (Std.is(value, Date))
 		{

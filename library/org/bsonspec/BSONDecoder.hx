@@ -96,7 +96,7 @@ class BSONDecoder
 				bytes += 8;
 			case 0x12: // int64
 				value = readInt64(input);
-				value = Int64.getHigh(value) * 4294967296.0 + (Int64.getLow(value) > 0 ? Int64.getLow(value) : 4294967296.0 + Int64.getLow(value));
+				value = value.high * 4294967296.0 + (value.low > 0 ? value.low : 4294967296.0 + value.low);
 				bytes += 8;
 			case 0xFF: // min key
 				value = "MIN";
