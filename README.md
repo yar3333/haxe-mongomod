@@ -38,5 +38,5 @@ var post = {
 mongo.blog.posts.insert(post);
 
 post.body = 'Made some updates to my post';
-posts.update({title: post.title}, post); // update the post
+mongo.blog.posts.update({title: post.title}, post); // update the post
 ```
