@@ -7,7 +7,7 @@ Improvements (compared to base project):
 
  * production-ready (used by russian social network [http://vkrugudruzei.ru/](http://vkrugudruzei.ru/));
  * major refactored to avoid static methods (now support many connections to mongo instances);
- * Int64 always threated as Float (this prevent bugs when type hiddenly changed on records editing/importing/exporting);
+ * Int64 always treated as Float (this prevent bugs when type hiddenly changed on records editing/importing/exporting);
  * support Date type;
  * several major bugfixes.
 
