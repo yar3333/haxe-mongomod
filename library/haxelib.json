@@ -4,8 +4,8 @@
   "tags": ["cpp","neko","php"],
   "description": "MongoDB driver for haxe. Based on the 'mongodb' haxe library.",
   "contributors": ["yar3333"],
-  "releasenote": "Fixed Int64 issues due to haxe 3.2 update.",
-  "version": "1.0.3",
+  "releasenote": "Minor readme fix.",
+  "version": "1.0.4",
   "url": "https://bitbucket.org/yar3333/haxe-mongomod",
   "dependencies": {}
 }
